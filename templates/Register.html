@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สมัครสมาชิก - 24/7Tutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
+        .social-btn { display: block; width: 100%; padding: 12px; margin-bottom: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; color: white; }
+        .btn-google { background-color: #db4437; }
+        .btn-facebook { background-color: #4267B2; }
+        .btn-action { background-color: #2ecc71; margin-top: 15px; }
+        .social-btn:hover { opacity: 0.9; }
+        input { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <h2>สมัครสมาชิกใหม่</h2>
+        <p style="color: #666; margin-bottom: 25px;">เลือกช่องทางสมัครใช้งานที่สะดวกที่สุด</p>
+        
+        <!-- ขั้นตอนที่ 1: เลือกช่องทางสมัคร (จะถูกซ่อนเมื่อกดสำเร็จ) -->
+        <div id="step1-social">
+            <button id="btn-google" class="social-btn btn-google">G สมัครด้วย Google</button>
+            <button id="btn-facebook" class="social-btn btn-facebook">f สมัครด้วย Facebook</button>
+            
+            <div style="margin-top: 20px; font-size: 14px;">
+                มีบัญชีอยู่แล้ว? <a href="login.html" style="color: #00a8ff; text-decoration: none;">เข้าสู่ระบบที่นี่</a>
+            </div>
+        </div>
+
+        <!-- ขั้นตอนที่ 2: ตั้งรหัสผ่าน (จะแสดงขึ้นมาเมื่อผ่านขั้นตอนแรก) -->
+        <div id="step2-password" style="display: none;">
+            <p style="color: #2ecc71; font-weight: 600;">เชื่อมต่อบัญชีสำเร็จ!</p>
+            <p style="font-size: 14px; color: #555;">กรุณาตั้งรหัสผ่านสำหรับอีเมล:<br><strong id="display-email"></strong></p>
+            
+            <input type="password" id="new-password" placeholder="ตั้งรหัสผ่าน (ขั้นต่ำ 6 ตัวอักษร)" />
+            <input type="password" id="confirm-password" placeholder="ยืนยันรหัสผ่านอีกครั้ง" />
+            
+            <button id="btn-save-password" class="social-btn btn-action">บันทึกรหัสผ่านและเริ่มเรียน</button>
+        </div>
+    </div>
+
+    <!-- โหลดระบบ Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, updatePassword } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyDCV8aHrVBp5FXxdMYG4nVf59kUJOMnpoY",
+          authDomain: "physics-tutor-web.firebaseapp.com",
+          projectId: "physics-tutor-web",
+          storageBucket: "physics-tutor-web.firebasestorage.app",
+          messagingSenderId: "232941095849",
+          appId: "1:232941095849:web:2eb9bcc515e0c7cc00d2b8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
+        const facebookProvider = new FacebookAuthProvider();
+
+        // ฟังก์ชันเมื่อสมัครสำเร็จ ให้เปลี่ยนหน้าจอไป Step 2
+        function showStep2(user) {
+            document.getElementById('step1-social').style.display = 'none';
+            document.getElementById('step2-password').style.display = 'block';
+            document.getElementById('display-email').innerText = user.email || "บัญชีของคุณ";
+        }
+
+        // ปุ่มสมัคร Google
+        document.getElementById('btn-google').addEventListener('click', () => {
+            signInWithPopup(auth, googleProvider)
+                .then((result) => showStep2(result.user))
+                .catch((error) => alert("เกิดข้อผิดพลาด: " + error.message));
+        });
+
+        // ปุ่มสมัคร Facebook
+        document.getElementById('btn-facebook').addEventListener('click', () => {
+            signInWithPopup(auth, facebookProvider)
+                .then((result) => showStep2(result.user))
+                .catch((error) => alert("เกิดข้อผิดพลาด: " + error.message));
+        });
+
+        // ปุ่มบันทึกรหัสผ่าน (อัปเดตรหัสผ่านเข้าไปในบัญชีที่พึ่งล็อกอิน)
+        document.getElementById('btn-save-password').addEventListener('click', () => {
+            const pass1 = document.getElementById('new-password').value;
+            const pass2 = document.getElementById('confirm-password').value;
+            const user = auth.currentUser;
+
+            if (pass1.length < 6) {
+                alert("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
+                return;
+            }
+            if (pass1 !== pass2) {
+                alert("รหัสผ่านไม่ตรงกัน กรุณาพิมพ์ใหม่");
+                return;
+            }
+
+            // คำสั่งอัปเดตรหัสผ่านของ Firebase
+            updatePassword(user, pass1).then(() => {
+                alert("ตั้งรหัสผ่านเรียบร้อย! คราวหน้าคุณสามารถเข้าสู่ระบบด้วยอีเมลและรหัสผ่านนี้ได้เลย");
+                // เปลี่ยนหน้าไปยังแดชบอร์ดหรือหน้าเรียน
+                // window.location.href = "dashboard.html"; 
+            }).catch((error) => {
+                alert("เกิดข้อผิดพลาดในการตั้งรหัสผ่าน: " + error.message);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ห้องเรียนสด - 24/7Tutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- เรียกใช้ Jitsi Meet External API -->
+    <script src="https://meet.jit.si/external_api.js"></script>
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
+        h2 { color: #333; margin-top: 0; }
+        /* กำหนดขนาดของกรอบวิดีโอ */
+        #jitsi-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 600px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            background-color: #000;
+        }
+        .btn-back { display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #e74c3c; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <h2>🎥 ห้องเรียนสดฟิสิกส์ (Live Classroom)</h2>
+    
+    <!-- พื้นที่สำหรับแสดงหน้าต่างวิดีโอ -->
+    <div id="jitsi-container"></div>
+
+    <a href="index.html" class="btn-back">กลับหน้าหลัก</a>
+
+    <script>
+        // ตั้งค่าการทำงานของ Jitsi
+        const domain = 'meet.jit.si';
+        const options = {
+            // ตั้งชื่อห้อง (เปลี่ยนเป็นชื่อคอร์สของคุณได้)
+            roomName: 'PhysicsTutorBetaClass_247', 
+            
+            // ขนาดความกว้าง-สูงของวิดีโอ
+            width: '100%',
+            height: '100%',
+            
+            // กำหนดเป้าหมายว่าจะให้วิดีโอไปโผล่ที่ไหน
+            parentNode: document.querySelector('#jitsi-container'),
+            
+            configOverwrite: {
+                // ปิดฟีเจอร์ที่ไม่จำเป็น เพื่อไม่ให้นักเรียนกดเล่น
+                disableDeepLinking: true,
+                prejoinPageEnabled: false, // ปิดหน้าจอรอเข้าห้อง
+            },
+            interfaceConfigOverwrite: {
+                // ปรับแต่งปุ่มเครื่องมือ (ซ่อนปุ่มบางปุ่มได้)
+                TOOLBAR_BUTTONS: [
+                    'microphone', 'camera', 'desktop', 'fullscreen',
+                    'fodeviceselection', 'hangup', 'profile', 'chat', 'raisehand',
+                    'videoquality', 'filmstrip', 'shortcuts', 'tileview'
+                ],
+            }
+        };
+
+        // สั่งเริ่มเปิดกล้องและเชื่อมต่อห้องเรียน
+        const api = new JitsiMeetExternalAPI(domain, options);
+        
+        // (Optional) ตั้งชื่อผู้ใช้เริ่มต้น (สามารถดึงจาก Firebase มาใส่ตรงนี้ได้)
+        api.executeCommand('displayName', 'นักเรียน / ติวเตอร์');
+    </script>
+
+</body>
+</html>

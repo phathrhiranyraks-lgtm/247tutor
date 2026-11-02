@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24/7 Tutor - ถามตอบโจทย์ฟิสิกส์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #f4f7f6; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .form-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin-bottom: 20px; }
+        h3 { text-align: center; color: #333; margin-top: 0; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #555; font-size: 15px; }
+        select, input[type="file"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Kanit', sans-serif; box-sizing: border-box; font-size: 15px; }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn-submit { width: 100%; padding: 12px; background-color: #00a8ff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s; }
+        .btn-submit:hover { background-color: #0088cc; }
+        .btn-submit:disabled { background-color: #cccccc; cursor: not-allowed; }
+        
+        /* กล่องแสดงคำตอบที่เพิ่มเข้ามาใหม่ */
+        .response-container { background: #e3f2fd; padding: 20px; border-radius: 12px; width: 100%; max-width: 500px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .response-container h4 { margin-top: 0; color: #007bff; }
+        .ai-text { line-height: 1.6; color: #333; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h3>24/7 Physics Tutor</h3>
+        
+        <div class="form-group">
+            <label>1. เลือกระดับเนื้อหา:</label>
+            <select id="level-select">
+                <option value="มัธยมศึกษาปีที่ 4">มัธยมศึกษาปีที่ 4 </option>
+                <option value="มัธยมศึกษาปีที่ 5">มัธยมศึกษาปีที่ 5 </option>
+                <option value="มัธยมศึกษาปีที่ 6">มัธยมศึกษาปีที่ 6 </option>
+                <option value="Advanced Mode" style="font-weight: bold; color: #e74c3c;">⭐ Advanced Mode (โจทย์ประยุกต์ / สอบเข้ามหาวิทยาลัย)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>2. เลือกระดับความเข้มข้น (สไตล์การสอน):</label>
+            <select id="mode-select">
+                <option value="Soft">🌱 Soft (ค่อยๆ ใบ้ทีละสเต็ป เหมาะสำหรับปูพื้นฐาน)</option>
+                <option value="Medium">⚖️ Medium (อธิบายปานกลาง ไกด์สมการและทิศทางแรง)</option>
+                <option value="Expert">🔥 Expert (รวบรัด เน้นจุดหลอก เหมาะสำหรับคนแม่นทฤษฎี)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>3. แนบรูปภาพโจทย์ข้อสอบ (ถ้ามี):</label>
+            <input type="file" id="image-upload" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label>4. พิมพ์ข้อสงสัยของคุณ:</label>
+            <textarea id="question-text" placeholder="เช่น หนูวาดแผนภาพ FBD ครบไหมคะ หาแรงตึงเชือก T ไม่ได้ค่ะ..."></textarea>
+        </div>
+
+        <button class="btn-submit" id="btn-submit-form">ส่งคำถามให้พี่ติวเตอร์</button>
+    </div>
+
+    <!-- กล่องแสดงผลลัพธ์ -->
+    <div class="response-container" id="response-box">
+        <h4>คำแนะนำจากพี่ติวเตอร์:</h4>
+        <div class="ai-text" id="ai-response-text"></div>
+    </div>
+
+    <script>
+        document.getElementById('btn-submit-form').addEventListener('click', async () => {
+            const level = document.getElementById('level-select').value;
+            const mode = document.getElementById('mode-select').value;
+            const questionText = document.getElementById('question-text').value;
+            const imageFile = document.getElementById('image-upload').files[0];
+            const submitBtn = document.getElementById('btn-submit-form');
+            const responseBox = document.getElementById('response-box');
+            const responseText = document.getElementById('ai-response-text');
+
+            if(questionText.trim() === "" && !imageFile) {
+                alert("กรุณาพิมพ์คำถาม หรือแนบรูปภาพโจทย์ก่อนส่งครับ!");
+                return;
+            }
+
+            // เปลี่ยนสถานะปุ่มตอนกำลังโหลด
+            submitBtn.disabled = true;
+            submitBtn.innerText = "กำลังวิเคราะห์โจทย์...";
+            responseBox.style.display = "block";
+            responseText.innerHTML = "<em>พี่กำลังอ่านโจทย์และคำนวณ แป๊บเดียวนะครับ... ⏳</em>";
+
+            // เตรียมข้อมูลส่งไปที่ Python (Flask)
+            const formData = new FormData();
+            formData.append('level', level);
+            formData.append('mode', mode);
+            formData.append('message', questionText);
+            if (imageFile) formData.append('image', imageFile);
+
+            try {
+                // ส่งข้อมูลไปที่ Backend Endpoint /ask (สร้างไว้ใน app.py)
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                // แสดงคำตอบ
+                responseText.innerText = data.reply;
+            } catch (error) {
+                responseText.innerHTML = "<span style='color:red;'>เชื่อมต่อระบบล้มเหลว รบกวนลองใหม่อีกครั้งครับ</span>";
+            } finally {
+                // คืนสถานะปุ่ม
+                submitBtn.disabled = false;
+                submitBtn.innerText = "ส่งคำถามให้พี่ติวเตอร์";
+            }
+        });
+    </script>
+
+</body>
+</html>
